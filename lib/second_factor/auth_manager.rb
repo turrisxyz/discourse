@@ -156,6 +156,10 @@ class SecondFactor::AuthManager
     end
   end
 
+  def add_action_data(key, val)
+    @action.add_data(key, val)
+  end
+
   private
 
   def initiate_second_factor_auth(params, secure_session, request)

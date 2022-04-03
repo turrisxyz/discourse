@@ -8,6 +8,7 @@ module SecondFactor::Actions
     def initialize(guardian)
       @guardian = guardian
       @current_user = guardian.user
+      @data = HashWithIndifferentAccess.new
     end
 
     def no_second_factors_enabled!(params)
@@ -20,6 +21,10 @@ module SecondFactor::Actions
 
     def second_factor_auth_completed!(callback_params)
       raise NotImplementedError.new
+    end
+
+    def add_data(key, val)
+      @data[key] = val
     end
   end
 end
