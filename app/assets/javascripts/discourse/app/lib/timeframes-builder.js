@@ -1,3 +1,8 @@
+import {
+  timeShortcuts,
+  TIME_SHORTCUT_TYPES,
+} from "discourse/lib/time-shortcut";
+
 const TIMEFRAME_BASE = {
   enabled: () => true,
   when: () => null,
@@ -128,6 +133,65 @@ export function timeframeDetails(id) {
   return _timeframeById[id];
 }
 
-export default function buildTimeframes(options = {}) {
+export function buildTimeframesOld(options = {}) {
   return TIMEFRAMES.filter((tf) => tf.enabled(options));
+}
+
+export default function buildTimeframes(options = {}, timezone) {
+  //return buildTimeframesOld(options);
+  let timeframes = defaultTimeframes(timezone);
+  timeframes = processDynamicTimeframes(timeframes, options, timezone);
+  return timeframes.filter((t) => !t.hidden);
+}
+
+function defaultTimeframes(timezone) {
+  const shortcuts = timeShortcuts(timezone);
+
+  return [
+    shortcuts.laterToday(),
+    shortcuts.tomorrow(),
+    shortcuts.laterThisWeek(),
+    shortcuts.thisWeekend(),
+    shortcuts.monday(),
+    shortcuts.twoWeeks(),
+    shortcuts.nextMonth(),
+    shortcuts.twoMonths(),
+    shortcuts.threeMonths(),
+    shortcuts.fourMonths(),
+    shortcuts.sixMonths(),
+  ];
+}
+
+function processDynamicTimeframes(timeframes, options, timezone) {
+  if (
+    !options.includeWeekend ||
+    options.day === 0 ||
+    options.day === 5 ||
+    options.day === 6
+  ) {
+    hideTimeframe(timeframes, TIME_SHORTCUT_TYPES.THIS_WEEKEND);
+  }
+
+  if (options.day === 0) {
+    hideTimeframe(timeframes, TIME_SHORTCUT_TYPES.START_OF_NEXT_BUSINESS_WEEK);
+  }
+
+  if (options.now.date() === moment(timezone).endOf("month").date()) {
+    hideTimeframe(timeframes, TIME_SHORTCUT_TYPES.NEXT_MONTH);
+  }
+
+  if (!options.canScheduleToday) {
+    hideTimeframe(timeframes, TIME_SHORTCUT_TYPES.LATER_TODAY);
+  }
+
+  if (options.canScheduleToday || options.day === 0 || options.day >= 4) {
+    hideTimeframe(timeframes, TIME_SHORTCUT_TYPES.LATER_THIS_WEEK);
+  }
+
+  return timeframes;
+}
+
+function hideTimeframe(timeframes, timeframeId) {
+  const timeframe = timeframes.findBy("id", timeframeId);
+  timeframe.hidden = true;
 }

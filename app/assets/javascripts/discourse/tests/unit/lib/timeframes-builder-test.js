@@ -32,8 +32,8 @@ module("Unit | Lib | timeframes-builder", function (hooks) {
     const expected = [
       "later_today",
       "tomorrow",
+      "start_of_next_business_week",
       "later_this_week",
-      "next_week",
       "two_weeks",
       "next_month",
       "two_months",
@@ -53,7 +53,9 @@ module("Unit | Lib | timeframes-builder", function (hooks) {
     this.clock = fakeTime("2100-06-13T08:00:00", timezone, true); // Sunday
 
     assert.ok(
-      !buildTimeframes(buildOptions(moment())).mapBy("id").includes("next_week")
+      !buildTimeframes(buildOptions(moment()))
+        .mapBy("id")
+        .includes("start_of_next_business_week")
     );
   });
 
