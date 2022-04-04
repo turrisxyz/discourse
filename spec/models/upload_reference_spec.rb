@@ -21,8 +21,9 @@ describe UploadReference do
   context 'site setting uploads' do
     let(:provider) { SiteSettings::DbProvider.new(SiteSetting) }
     fab!(:upload) { Fabricate(:upload) }
+    fab!(:upload2) { Fabricate(:upload) }
 
-    it 'creates upload references' do
+    it 'creates upload references for uploads' do
       expect { provider.save('logo', upload.id, SiteSettings::TypeSupervisor.types[:upload]) }
         .to change { UploadReference.count }.by(1)
 
@@ -32,6 +33,17 @@ describe UploadReference do
 
       expect { provider.destroy('logo') }
         .to change { UploadReference.count }.by(-1)
+    end
+
+    it 'creates upload references for uploaded_image_lists' do
+      expect { provider.save('selectable_avatars', "#{upload.id}|#{upload2.id}", SiteSettings::TypeSupervisor.types[:uploaded_image_list]) }
+        .to change { UploadReference.count }.by(2)
+
+      upload_reference = UploadReference.last
+      expect(upload_reference.target).to eq(SiteSetting.find_by(name: 'selectable_avatars'))
+
+      expect { provider.destroy('selectable_avatars') }
+        .to change { UploadReference.count }.by(-2)
     end
   end
 

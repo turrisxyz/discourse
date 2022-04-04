@@ -10,9 +10,14 @@ class SiteSetting < ActiveRecord::Base
   validates_presence_of :data_type
 
   after_save do
-    if self.data_type == SiteSettings::TypeSupervisor.types[:upload] && saved_change_to_value?
-      UploadReference.where(target: self).destroy_all
-      UploadReference.create!(upload_id: self.value, target: self) if self.value.present?
+    if saved_change_to_value?
+      if self.data_type == SiteSettings::TypeSupervisor.types[:upload]
+        UploadReference.where(target: self).destroy_all
+        UploadReference.create!(upload_id: self.value, target: self) if self.value.present?
+      elsif self.data_type == SiteSettings::TypeSupervisor.types[:uploaded_image_list]
+        UploadReference.where(target: self).destroy_all
+        self.value.split('|').each { |upload_id| UploadReference.create!(upload_id: upload_id, target: self) }
+      end
     end
   end
 
