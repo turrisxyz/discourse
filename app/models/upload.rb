@@ -92,8 +92,6 @@ class Upload < ActiveRecord::Base
       .where("ur.upload_id IS NULL")
       .joins("LEFT JOIN users u ON u.uploaded_avatar_id = uploads.id")
       .where("u.uploaded_avatar_id IS NULL")
-      .joins("LEFT JOIN user_avatars ua ON ua.gravatar_upload_id = uploads.id OR ua.custom_upload_id = uploads.id")
-      .where("ua.gravatar_upload_id IS NULL AND ua.custom_upload_id IS NULL")
       .joins(<<~SQL)
         LEFT JOIN theme_settings ts
         ON NULLIF(ts.value, '')::integer = uploads.id
