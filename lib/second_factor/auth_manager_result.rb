@@ -4,6 +4,7 @@ class SecondFactor::AuthManagerResult
   STATUSES = {
     no_second_factor: 1,
     second_factor_auth_completed: 2,
+    second_factor_auth_skipped: 3,
   }.freeze
 
   private_constant :STATUSES
@@ -21,5 +22,9 @@ class SecondFactor::AuthManagerResult
 
   def second_factor_auth_completed?
     @status_id == STATUSES[:second_factor_auth_completed]
+  end
+
+  def second_factor_auth_skipped?
+    @status_id == STATUSES[:second_factor_auth_skipped]
   end
 end

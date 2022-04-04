@@ -71,48 +71,17 @@ class SessionController < ApplicationController
         return
       end
 
-      result = run_second_factor!(SecondFactor::Actions::DiscourseConnect2faProvider) do |manager|
-        manager.add_action_data(:sso, sso)
-      end
-      if sso.require_2fa
-        # if !current_user
-        #   
-        # end
-        # if current_user.has_2fa_method?
-        # end
-      end
-
       if current_user
-        sso.name = current_user.name
-        sso.username = current_user.username
-        sso.email = current_user.email
-        sso.external_id = current_user.id.to_s
-        sso.admin = current_user.admin?
-        sso.moderator = current_user.moderator?
-        sso.groups = current_user.groups.pluck(:name).join(",")
-
-        if current_user.uploaded_avatar.present?
-          base_url = Discourse.store.external? ? "#{Discourse.store.absolute_base_url}/" : Discourse.base_url
-          avatar_url = "#{base_url}#{Discourse.store.get_path_for_upload(current_user.uploaded_avatar)}"
-          sso.avatar_url = UrlHelper.absolute Discourse.store.cdn_url(avatar_url)
+        result = run_second_factor!(SecondFactor::Actions::DiscourseConnect2fa) do |manager|
+          manager.add_action_data(:sso, sso)
         end
 
-        if current_user.user_profile.profile_background_upload.present?
-          sso.profile_background_url = UrlHelper.absolute(upload_cdn_path(
-            current_user.user_profile.profile_background_upload.url
-          ))
-        end
-
-        if current_user.user_profile.card_background_upload.present?
-          sso.card_background_url = UrlHelper.absolute(upload_cdn_path(
-            current_user.user_profile.card_background_upload.url
-          ))
-        end
-
-        if request.xhr?
-          cookies[:sso_destination_url] = sso.to_url(sso.return_sso_url)
-        else
-          redirect_to sso.to_url(sso.return_sso_url)
+        if result.second_factor_auth_skipped?
+          if request.xhr?
+            cookies[:sso_destination_url] = sso.to_url(sso.return_sso_url)
+          else
+            redirect_to sso.to_url(sso.return_sso_url)
+          end
         end
       else
         cookies[:sso_payload] = request.query_string

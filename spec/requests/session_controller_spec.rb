@@ -2317,7 +2317,7 @@ describe SessionController do
     end
 
     it 'returns 401 if the challenge nonce has expired' do
-      post "/session/2fa/test-action"
+      post "/session/2fa/test-action", xhr: true
       nonce = response.parsed_body["second_factor_challenge_nonce"]
       get "/session/2fa.json", params: { nonce: nonce }
       expect(response.status).to eq(200)
@@ -2330,7 +2330,7 @@ describe SessionController do
     end
 
     it 'responds with challenge data' do
-      post "/session/2fa/test-action"
+      post "/session/2fa/test-action", xhr: true
       nonce = response.parsed_body["second_factor_challenge_nonce"]
       get "/session/2fa.json", params: { nonce: nonce }
       expect(response.status).to eq(200)
@@ -2352,7 +2352,7 @@ describe SessionController do
         enabled: true
       )
       Fabricate(:user_second_factor_backup, user: user)
-      post "/session/2fa/test-action", params: { allow_backup_codes: true }
+      post "/session/2fa/test-action", params: { allow_backup_codes: true }, xhr: true
       nonce = response.parsed_body["second_factor_challenge_nonce"]
       get "/session/2fa.json", params: { nonce: nonce }
       expect(response.status).to eq(200)
@@ -2379,7 +2379,7 @@ describe SessionController do
     end
 
     it 'returns 401 if the challenge nonce has expired' do
-      post "/session/2fa/test-action"
+      post "/session/2fa/test-action", xhr: true
       nonce = response.parsed_body["second_factor_challenge_nonce"]
 
       freeze_time (SecondFactor::AuthManager::MAX_CHALLENGE_AGE + 1.minute).from_now
@@ -2395,7 +2395,7 @@ describe SessionController do
 
     it 'returns 403 if the 2FA method is not allowed' do
       Fabricate(:user_second_factor_backup, user: user)
-      post "/session/2fa/test-action"
+      post "/session/2fa/test-action", xhr: true
       nonce = response.parsed_body["second_factor_challenge_nonce"]
       post "/session/2fa.json", params: {
         nonce: nonce,
@@ -2406,7 +2406,7 @@ describe SessionController do
     end
 
     it 'returns 403 if the user disables the 2FA method in the middle of the 2FA process' do
-      post "/session/2fa/test-action"
+      post "/session/2fa/test-action", xhr: true
       nonce = response.parsed_body["second_factor_challenge_nonce"]
       token = ROTP::TOTP.new(user_second_factor.data).now
       user_second_factor.destroy!
@@ -2419,7 +2419,7 @@ describe SessionController do
     end
 
     it 'marks the challenge as successful if the 2fa succeeds' do
-      post "/session/2fa/test-action", params: { redirect_path: "/ggg" }
+      post "/session/2fa/test-action", params: { redirect_path: "/ggg" }, xhr: true
       nonce = response.parsed_body["second_factor_challenge_nonce"]
 
       token = ROTP::TOTP.new(user_second_factor.data).now
@@ -2442,7 +2442,7 @@ describe SessionController do
     end
 
     it 'does not mark the challenge as successful if the 2fa fails' do
-      post "/session/2fa/test-action", params: { redirect_path: "/ggg" }
+      post "/session/2fa/test-action", params: { redirect_path: "/ggg" }, xhr: true
       nonce = response.parsed_body["second_factor_challenge_nonce"]
 
       token = ROTP::TOTP.new(user_second_factor.data).now.to_i

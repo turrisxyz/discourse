@@ -144,12 +144,15 @@ class SecondFactor::AuthManager
   end
 
   def run!(request, params, secure_session)
-    if !allowed_methods.any? { |m| @current_user.valid_second_factor_method_for_user?(m) }
-      @action.no_second_factors_enabled!(params)
-      create_result(:no_second_factor)
-    elsif nonce = params[:second_factor_nonce].presence
+    if nonce = params[:second_factor_nonce].presence
       verify_second_factor_auth_completed(nonce, secure_session)
       create_result(:second_factor_auth_completed)
+    elsif @action.skip_second_factor_auth?(params)
+      @action.second_factor_auth_skipped!(params)
+      create_result(:second_factor_auth_skipped)
+    elsif !allowed_methods.any? { |m| @current_user.valid_second_factor_method_for_user?(m) }
+      @action.no_second_factors_enabled!(params)
+      create_result(:no_second_factor)
     else
       nonce = initiate_second_factor_auth(params, secure_session, request)
       raise SecondFactorRequired.new(nonce: nonce)

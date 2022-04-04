@@ -11,6 +11,14 @@ module SecondFactor::Actions
       @data = HashWithIndifferentAccess.new
     end
 
+    def skip_second_factor_auth?(params)
+      false
+    end
+
+    def second_factor_auth_skipped!(params)
+      raise NotImplementedError.new
+    end
+
     def no_second_factors_enabled!(params)
       raise NotImplementedError.new
     end
