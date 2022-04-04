@@ -91,12 +91,6 @@ class Upload < ActiveRecord::Base
     scope = self
       .joins("LEFT JOIN upload_references ur ON ur.upload_id = uploads.id AND ur.target_type != 'Post'")
       .where("ur.upload_id IS NULL")
-      .joins(<<~SQL)
-        LEFT JOIN theme_settings ts
-        ON NULLIF(ts.value, '')::integer = uploads.id
-        AND ts.data_type = #{ThemeSetting.types[:upload].to_i}
-      SQL
-      .where("ts.value IS NULL")
 
     if SiteSetting.selectable_avatars.present?
       scope = scope.where.not(id: SiteSetting.selectable_avatars.map(&:id))
