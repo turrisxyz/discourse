@@ -25,6 +25,7 @@ class Upload < ActiveRecord::Base
   end
 
   has_many :optimized_images, dependent: :destroy
+  has_many :user_uploads, dependent: :destroy
   has_many :upload_references, dependent: :destroy
   has_many :posts, through: :upload_references, source: :target, source_type: 'Post'
   has_many :topic_thumbnails
